@@ -1,14 +1,75 @@
 import { useRef, useEffect, useState } from "react";
 import Webcam from "react-webcam";
+import { BrowserMultiFormatReader } from "@zxing/browser";
+import { DecodeHintType, BarcodeFormat } from "@zxing/library";
 
 interface CameraProps {
   onCapture: (imageData: string) => void;
+  onBarcodeDetected?: (barcode: string) => void;
 }
 
-export const Camera = ({ onCapture }: CameraProps) => {
+export const Camera = ({ onCapture, onBarcodeDetected }: CameraProps) => {
   const webcamRef = useRef<Webcam>(null);
   const [isSupported, setIsSupported] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isScanning, setIsScanning] = useState(false);
+  const [scanResult, setScanResult] = useState<string | null>(null);
+  const scanInterval = useRef<NodeJS.Timeout | null>(null);
+  const codeReader = useRef<BrowserMultiFormatReader | null>(null);
+
+  useEffect(() => {
+    // Initialize barcode reader
+    const hints = new Map();
+    hints.set(DecodeHintType.POSSIBLE_FORMATS, [
+      BarcodeFormat.CODE_128,
+      BarcodeFormat.CODE_39,
+      BarcodeFormat.EAN_13,
+      BarcodeFormat.EAN_8,
+      BarcodeFormat.UPC_A,
+      BarcodeFormat.UPC_E,
+      BarcodeFormat.QR_CODE,
+    ]);
+    codeReader.current = new BrowserMultiFormatReader(hints);
+
+    return () => {
+      if (scanInterval.current) {
+        clearInterval(scanInterval.current);
+      }
+    };
+  }, []);
+
+  const startScanning = () => {
+    setIsScanning(true);
+    scanInterval.current = setInterval(async () => {
+      if (webcamRef.current && codeReader.current) {
+        const imageSrc = webcamRef.current.getScreenshot();
+        if (imageSrc) {
+          try {
+            const result = await codeReader.current.decodeFromImageUrl(
+              imageSrc
+            );
+            if (result) {
+              const barcode = result.getText();
+              setScanResult(barcode);
+              if (onBarcodeDetected) {
+                onBarcodeDetected(barcode);
+              }
+            }
+          } catch (error) {
+            // Ignore errors when no barcode is found
+          }
+        }
+      }
+    }, 500); // Scan every 500ms
+  };
+
+  const stopScanning = () => {
+    setIsScanning(false);
+    if (scanInterval.current) {
+      clearInterval(scanInterval.current);
+      scanInterval.current = null;
+    }
+  };
 
   const handleCapture = () => {
     if (webcamRef.current) {
@@ -17,6 +78,11 @@ export const Camera = ({ onCapture }: CameraProps) => {
         onCapture(imageSrc);
       }
     }
+  };
+
+  const closeModal = () => {
+    setScanResult(null);
+    stopScanning();
   };
 
   useEffect(() => {
@@ -54,6 +120,17 @@ export const Camera = ({ onCapture }: CameraProps) => {
 
   return (
     <div className="camera-container">
+      <div className="button-group top">
+        <button
+          onClick={isScanning ? stopScanning : startScanning}
+          className="scan-button"
+        >
+          {isScanning ? "停止扫描" : "开始扫描"}
+        </button>
+        <button onClick={handleCapture} className="capture-button">
+          拍照
+        </button>
+      </div>
       <Webcam
         ref={webcamRef}
         audio={false}
@@ -64,9 +141,17 @@ export const Camera = ({ onCapture }: CameraProps) => {
           height: { ideal: 720 },
         }}
       />
-      <button onClick={handleCapture} className="capture-button">
-        拍照
-      </button>
+      {scanResult && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <h3>扫描结果</h3>
+            <div className="scan-result">{scanResult}</div>
+            <button onClick={closeModal} className="modal-button">
+              关闭
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
