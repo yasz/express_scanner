@@ -7,13 +7,15 @@
   overflow: hidden;
   display: flex;
   justify-content: center;
-  align-items: center;
+  align-items: flex-start;
+  width: 100%;
 }
 
 body {
   margin: 0;
   padding: 0;
   overflow: hidden;
+  width: 100%;
 }
 
 .logo {
@@ -54,15 +56,22 @@ body {
 
 .app {
   max-width: 100%;
-  margin: 0;
+  margin: 0 auto;
   padding: 0;
   text-align: center;
   height: 100vh;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   overflow: hidden;
+  width: 100%;
+}
+
+.app h4 {
+  margin: 10px 0;
+  font-size: 18px;
+  color: #333;
 }
 
 h1 {
@@ -74,7 +83,7 @@ h1 {
   position: relative;
   width: 80vw;
   height: 75vh;
-  margin: 0;
+  margin: 0 auto;
   display: flex;
   flex-direction: column;
   align-items: center;
