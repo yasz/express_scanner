@@ -1,54 +1,40 @@
-# React + TypeScript + Vite
+# 运单扫描系统
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+一个基于 React 和 TypeScript 的运单扫描系统，支持后置摄像头拍照和 OCR 文字识别。
 
-Currently, two official plugins are available:
+## 功能特点
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- 后置摄像头拍照
+- 图片 OCR 文字识别
+- 响应式设计，适配移动设备
+- 简洁的用户界面
 
-## Expanding the ESLint configuration
+## 技术栈
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+- React
+- TypeScript
+- Tesseract.js (OCR)
+- React Webcam
 
-```js
-export default tseslint.config({
-  extends: [
-    // Remove ...tseslint.configs.recommended and replace with this
-    ...tseslint.configs.recommendedTypeChecked,
-    // Alternatively, use this for stricter rules
-    ...tseslint.configs.strictTypeChecked,
-    // Optionally, add this for stylistic rules
-    ...tseslint.configs.stylisticTypeChecked,
-  ],
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
+## 安装
+
+```bash
+# 安装依赖
+npm install
+
+# 启动开发服务器
+npm run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## 使用说明
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+1. 打开应用后，允许摄像头访问权限
+2. 点击"拍照"按钮拍摄运单
+3. 点击"开始识别"进行 OCR 处理
+4. 查看识别结果，可以点击"重新扫描"继续
 
-export default tseslint.config({
-  plugins: {
-    // Add the react-x and react-dom plugins
-    'react-x': reactX,
-    'react-dom': reactDom,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended typescript rules
-    ...reactX.configs['recommended-typescript'].rules,
-    ...reactDom.configs.recommended.rules,
-  },
-})
-```
+## 注意事项
+
+- 需要在 HTTPS 或 localhost 环境下运行
+- 建议使用现代浏览器（Chrome、Firefox、Safari）
+- 移动设备访问时确保使用后置摄像头
