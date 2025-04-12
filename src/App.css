@@ -158,6 +158,21 @@ h1 {
   background-color: #45a049;
 }
 
+.capture-button:disabled {
+  background-color: #f44336;
+  cursor: not-allowed;
+  animation: revertToGreen 5s ease-in-out;
+}
+
+@keyframes revertToGreen {
+  0% {
+    background-color: #f44336;
+  }
+  100% {
+    background-color: #4caf50;
+  }
+}
+
 .ocr-container {
   width: 80vw;
   height: 80vh;
@@ -328,4 +343,73 @@ h1 {
     width: 95%;
     padding: 16px;
   }
+}
+
+.App {
+  text-align: center;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.App-header {
+  background-color: #282c34;
+  padding: 20px;
+  color: white;
+}
+
+main {
+  flex: 1;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+.result-container {
+  max-width: 800px;
+  width: 100%;
+  margin-top: 20px;
+  padding: 20px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background-color: #f9f9f9;
+}
+
+.captured-image {
+  max-width: 100%;
+  height: auto;
+  margin: 20px 0;
+  border-radius: 4px;
+}
+
+.ocr-result,
+.ocr-error {
+  margin-top: 20px;
+  padding: 15px;
+  border-radius: 4px;
+}
+
+.ocr-result {
+  background-color: #e8f5e9;
+  border: 1px solid #c8e6c9;
+}
+
+.ocr-error {
+  background-color: #ffebee;
+  border: 1px solid #ffcdd2;
+}
+
+h2,
+h3 {
+  margin: 0 0 10px 0;
+  color: #333;
+}
+
+p {
+  margin: 0;
+  color: #666;
+  white-space: pre-wrap;
+  word-break: break-word;
 }

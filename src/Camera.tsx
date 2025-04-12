@@ -2,18 +2,27 @@ import { useRef, useEffect, useState } from "react";
 import Webcam from "react-webcam";
 import { BrowserMultiFormatReader } from "@zxing/browser";
 import { DecodeHintType, BarcodeFormat } from "@zxing/library";
+import { createWorker } from "tesseract.js";
 
 interface CameraProps {
   onCapture: (imageData: string) => void;
   onBarcodeDetected?: (barcode: string) => void;
+  onOCRResult?: (text: string) => void;
+  onOCRError?: (error: string) => void;
 }
 
-export const Camera = ({ onCapture, onBarcodeDetected }: CameraProps) => {
+export const Camera = ({
+  onCapture,
+  onBarcodeDetected,
+  onOCRResult,
+  onOCRError,
+}: CameraProps) => {
   const webcamRef = useRef<Webcam>(null);
   const [isSupported, setIsSupported] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isScanning, setIsScanning] = useState(false);
   const [scanResult, setScanResult] = useState<string | null>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
   const scanInterval = useRef<NodeJS.Timeout | null>(null);
   const codeReader = useRef<BrowserMultiFormatReader | null>(null);
 
@@ -71,11 +80,66 @@ export const Camera = ({ onCapture, onBarcodeDetected }: CameraProps) => {
     }
   };
 
-  const handleCapture = () => {
+  const handleCaptureAndOCR = async () => {
     if (webcamRef.current) {
       const imageSrc = webcamRef.current.getScreenshot();
       if (imageSrc) {
+        setIsProcessing(true);
         onCapture(imageSrc);
+
+        let worker: any = null;
+        try {
+          worker = await createWorker("eng+chi_sim");
+
+          const timeoutPromise = new Promise<never>((_, reject) => {
+            setTimeout(() => {
+              if (worker) {
+                worker.terminate();
+              }
+              reject(new Error("处理超时"));
+            }, 3000);
+          });
+
+          const result = await Promise.race([
+            worker.recognize(imageSrc),
+            timeoutPromise,
+          ]);
+
+          if (result && typeof result === "object" && "data" in result) {
+            const text = (result as { data: { text: string } }).data.text;
+            if (text.trim()) {
+              if (onOCRResult) {
+                onOCRResult(text);
+              }
+            } else {
+              if (onOCRError) {
+                onOCRError("未识别到文字");
+              }
+            }
+          } else {
+            if (onOCRError) {
+              onOCRError("处理超时");
+            }
+          }
+        } catch (error) {
+          console.error("处理错误:", error);
+          if (onOCRError) {
+            onOCRError(
+              error instanceof Error && error.message === "处理超时"
+                ? "处理超时，请重试"
+                : "处理失败"
+            );
+          }
+        } finally {
+          if (worker) {
+            try {
+              await worker.terminate();
+            } catch (e) {
+              console.error("清理 worker 失败:", e);
+            }
+          }
+          setIsProcessing(false);
+        }
       }
     }
   };
@@ -137,8 +201,12 @@ export const Camera = ({ onCapture, onBarcodeDetected }: CameraProps) => {
         >
           {isScanning ? "停止扫描" : "开始扫描"}
         </button>
-        <button onClick={handleCapture} className="capture-button">
-          拍照
+        <button
+          onClick={handleCaptureAndOCR}
+          className="capture-button"
+          disabled={isProcessing}
+        >
+          {isProcessing ? "识别中..." : "OCR识别"}
         </button>
       </div>
       {scanResult && (
