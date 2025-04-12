@@ -120,17 +120,6 @@ export const Camera = ({ onCapture, onBarcodeDetected }: CameraProps) => {
 
   return (
     <div className="camera-container">
-      <div className="button-group top">
-        <button
-          onClick={isScanning ? stopScanning : startScanning}
-          className="scan-button"
-        >
-          {isScanning ? "停止扫描" : "开始扫描"}
-        </button>
-        <button onClick={handleCapture} className="capture-button">
-          拍照
-        </button>
-      </div>
       <Webcam
         ref={webcamRef}
         audio={false}
@@ -141,6 +130,17 @@ export const Camera = ({ onCapture, onBarcodeDetected }: CameraProps) => {
           height: { ideal: 720 },
         }}
       />
+      <div className="button-group bottom">
+        <button
+          onClick={isScanning ? stopScanning : startScanning}
+          className={`scan-button ${isScanning ? "scanning" : ""}`}
+        >
+          {isScanning ? "停止扫描" : "开始扫描"}
+        </button>
+        <button onClick={handleCapture} className="capture-button">
+          拍照
+        </button>
+      </div>
       {scanResult && (
         <div className="modal-overlay">
           <div className="modal-content">

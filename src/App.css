@@ -1,8 +1,19 @@
 #root {
   max-width: 1280px;
   margin: 0 auto;
-  padding: 2rem;
+  padding: 0;
   text-align: center;
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
 }
 
 .logo {
@@ -43,13 +54,15 @@
 
 .app {
   max-width: 100%;
-  margin: 0 auto;
-  padding: 10px;
+  margin: 0;
+  padding: 0;
   text-align: center;
-  min-height: 100vh;
+  height: 100vh;
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
+  overflow: hidden;
 }
 
 h1 {
@@ -60,11 +73,12 @@ h1 {
 .camera-container {
   position: relative;
   width: 80vw;
-  height: 80vh;
+  height: 75vh;
   margin: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
+  overflow: hidden;
 }
 
 .camera-container video {
@@ -79,38 +93,56 @@ h1 {
   left: 50%;
   transform: translateX(-50%);
   display: flex;
-  gap: 10px;
+  gap: 15px;
   z-index: 10;
+  background-color: rgba(255, 255, 255, 0.9);
+  padding: 8px 15px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  width: calc(100% - 30px);
+  justify-content: center;
 }
 
-.button-group.top {
-  top: 20px;
+.button-group.bottom {
+  bottom: 20px;
 }
 
 .scan-button {
-  padding: 12px 24px;
+  flex: 1;
+  padding: 8px 20px;
   background-color: #2196f3;
   color: white;
   border: none;
-  border-radius: 50px;
+  border-radius: 6px;
   cursor: pointer;
-  font-size: 16px;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  font-size: 14px;
+  transition: all 0.3s ease;
+  max-width: 200px;
 }
 
 .scan-button:hover {
   background-color: #0b7dda;
 }
 
+.scan-button.scanning {
+  background-color: #f44336;
+}
+
+.scan-button.scanning:hover {
+  background-color: #d32f2f;
+}
+
 .capture-button {
-  padding: 12px 24px;
+  flex: 1;
+  padding: 8px 20px;
   background-color: #4caf50;
   color: white;
   border: none;
-  border-radius: 50px;
+  border-radius: 6px;
   cursor: pointer;
-  font-size: 16px;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  font-size: 14px;
+  transition: all 0.3s ease;
+  max-width: 200px;
 }
 
 .capture-button:hover {
@@ -210,6 +242,7 @@ h1 {
   justify-content: center;
   align-items: center;
   z-index: 1000;
+  overflow: hidden;
 }
 
 .modal-content {
@@ -256,7 +289,7 @@ h1 {
 
 @media (max-width: 480px) {
   .app {
-    padding: 5px;
+    padding: 0;
   }
 
   h1 {
@@ -264,19 +297,22 @@ h1 {
     margin: 5px 0;
   }
 
-  .camera-container,
-  .ocr-container {
-    width: 90vw;
-    height: 70vh;
+  .camera-container {
+    width: 80vw;
+    height: 75vh;
   }
 
-  .capture-button,
-  .process-button,
-  .reset-button,
+  .button-group {
+    padding: 6px 12px;
+    gap: 10px;
+    width: calc(100% - 24px);
+  }
+
   .scan-button,
-  .modal-button {
-    padding: 10px 20px;
-    font-size: 14px;
+  .capture-button {
+    padding: 6px 15px;
+    font-size: 13px;
+    max-width: 150px;
   }
 
   .modal-content {

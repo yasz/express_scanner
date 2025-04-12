@@ -7,7 +7,6 @@ function App() {
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const [ocrResult, setOcrResult] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [barcodeResult, setBarcodeResult] = useState<string | null>(null);
 
   const handleCapture = (imageData: string) => {
     setCapturedImage(imageData);
@@ -23,15 +22,10 @@ function App() {
     setError(error);
   };
 
-  const handleBarcodeDetected = (barcode: string) => {
-    setBarcodeResult(barcode);
-  };
-
   const handleReset = () => {
     setCapturedImage(null);
     setOcrResult(null);
     setError(null);
-    setBarcodeResult(null);
   };
 
   return (
@@ -39,10 +33,7 @@ function App() {
       <h4>运单扫描系统</h4>
 
       {!capturedImage ? (
-        <Camera
-          onCapture={handleCapture}
-          onBarcodeDetected={handleBarcodeDetected}
-        />
+        <Camera onCapture={handleCapture} />
       ) : (
         <OCR
           imageData={capturedImage}
@@ -52,16 +43,6 @@ function App() {
       )}
 
       {error && <div className="error">{error}</div>}
-
-      {barcodeResult && (
-        <div className="result-container">
-          <h3>条码识别结果：</h3>
-          <div className="result-text">{barcodeResult}</div>
-          <button onClick={handleReset} className="reset-button">
-            重新扫描
-          </button>
-        </div>
-      )}
 
       {ocrResult && (
         <div className="result-container">
