@@ -231,7 +231,7 @@ export const Camera = ({
           {isProcessing ? "识别中..." : "OCR识别"}
         </button>
         <button onClick={toggleCamera} className="switch-camera-button">
-          {facingMode === "user" ? "切换到后置" : "切换到前置"}
+          {facingMode === "user" ? "切换后置" : "切换前置"}
         </button>
       </div>
       {scanResult && (
