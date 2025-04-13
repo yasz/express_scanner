@@ -10,5 +10,12 @@ export default defineConfig({
     port: 5173, // 默认端口
     open: true, // 自动打开浏览器
     https: true, // 启用 HTTPS
+    proxy: {
+      "/api": {
+        target: "http://localhost:5001",
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api/, ""),
+      },
+    },
   },
 });

@@ -2,7 +2,6 @@ import { useRef, useEffect, useState } from "react";
 import Webcam from "react-webcam";
 import { BrowserMultiFormatReader } from "@zxing/browser";
 import { DecodeHintType, BarcodeFormat } from "@zxing/library";
-import { createWorker } from "tesseract.js";
 
 interface CameraProps {
   onCapture: (imageData: string) => void;
@@ -23,6 +22,7 @@ export const Camera = ({
   const [isScanning, setIsScanning] = useState(false);
   const [scanResult, setScanResult] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const scanInterval = useRef<NodeJS.Timeout | null>(null);
   const codeReader = useRef<BrowserMultiFormatReader | null>(null);
 
@@ -85,59 +85,61 @@ export const Camera = ({
       const imageSrc = webcamRef.current.getScreenshot();
       if (imageSrc) {
         setIsProcessing(true);
+        setCapturedImage(imageSrc);
         onCapture(imageSrc);
 
-        let worker: any = null;
         try {
-          worker = await createWorker("eng+chi_sim");
+          // Convert base64 to blob
+          const base64Data = imageSrc.split(",")[1];
+          const byteCharacters = atob(base64Data);
+          const byteArrays = [];
+          for (let i = 0; i < byteCharacters.length; i++) {
+            byteArrays.push(byteCharacters.charCodeAt(i));
+          }
+          const byteArray = new Uint8Array(byteArrays);
+          const blob = new Blob([byteArray], { type: "image/jpeg" });
 
-          const timeoutPromise = new Promise<never>((_, reject) => {
-            setTimeout(() => {
-              if (worker) {
-                worker.terminate();
-              }
-              reject(new Error("处理超时"));
-            }, 3000);
+          // Create form data
+          const formData = new FormData();
+          formData.append("file", blob, "image.jpg");
+
+          console.log("开始发送OCR请求...");
+
+          // Send to OCR service
+          const response = await fetch("/api/OCR/recognize", {
+            method: "POST",
+            body: formData,
           });
 
-          const result = await Promise.race([
-            worker.recognize(imageSrc),
-            timeoutPromise,
-          ]);
+          console.log("OCR请求响应状态:", response.status);
 
-          if (result && typeof result === "object" && "data" in result) {
-            const text = (result as { data: { text: string } }).data.text;
-            if (text.trim()) {
-              if (onOCRResult) {
-                onOCRResult(text);
-              }
-            } else {
-              if (onOCRError) {
-                onOCRError("未识别到文字");
-              }
+          if (!response.ok) {
+            const errorText = await response.text();
+            console.error("OCR服务请求失败:", errorText);
+            throw new Error(`OCR服务请求失败: ${errorText}`);
+          }
+
+          const result = await response.json();
+          console.log("OCR识别结果:", result);
+
+          if (result && result.text) {
+            if (onOCRResult) {
+              onOCRResult(result.text);
             }
+            setScanResult(result.text);
           } else {
+            setScanResult("未识别到文字");
             if (onOCRError) {
-              onOCRError("处理超时");
+              onOCRError("未识别到文字");
             }
           }
         } catch (error) {
-          console.error("处理错误:", error);
+          console.error("OCR处理错误:", error);
+          setScanResult(error instanceof Error ? error.message : "处理失败");
           if (onOCRError) {
-            onOCRError(
-              error instanceof Error && error.message === "处理超时"
-                ? "处理超时，请重试"
-                : "处理失败"
-            );
+            onOCRError(error instanceof Error ? error.message : "处理失败");
           }
         } finally {
-          if (worker) {
-            try {
-              await worker.terminate();
-            } catch (e) {
-              console.error("清理 worker 失败:", e);
-            }
-          }
           setIsProcessing(false);
         }
       }
@@ -146,6 +148,7 @@ export const Camera = ({
 
   const closeModal = () => {
     setScanResult(null);
+    setCapturedImage(null); // 只在关闭弹窗时清除拍摄的图片
     stopScanning();
   };
 
@@ -184,16 +187,28 @@ export const Camera = ({
 
   return (
     <div className="camera-container">
-      <Webcam
-        ref={webcamRef}
-        audio={false}
-        screenshotFormat="image/jpeg"
-        videoConstraints={{
-          facingMode: { exact: "environment" },
-          width: { ideal: 1280 },
-          height: { ideal: 720 },
-        }}
-      />
+      {capturedImage ? (
+        <div className="captured-image-container">
+          <img src={capturedImage} alt="已拍摄" className="captured-image" />
+          {isProcessing && (
+            <div className="processing-overlay">
+              <div className="processing-spinner"></div>
+              <div className="processing-text">正在识别中...</div>
+            </div>
+          )}
+        </div>
+      ) : (
+        <Webcam
+          ref={webcamRef}
+          audio={false}
+          screenshotFormat="image/jpeg"
+          videoConstraints={{
+            facingMode: { exact: "environment" },
+            width: { ideal: 1280 },
+            height: { ideal: 720 },
+          }}
+        />
+      )}
       <div className="button-group bottom">
         <button
           onClick={isScanning ? stopScanning : startScanning}

@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { createWorker } from "tesseract.js";
 
 interface OCRProps {
   imageData: string;
@@ -11,51 +10,43 @@ export const OCR = ({ imageData, onResult, onError }: OCRProps) => {
   const [isProcessing, setIsProcessing] = useState(false);
 
   const processImage = async () => {
-    let worker: any = null;
     try {
       setIsProcessing(true);
 
-      worker = await createWorker("eng+chi_sim");
+      // Convert base64 to blob
+      const base64Data = imageData.split(",")[1];
+      const byteCharacters = atob(base64Data);
+      const byteArrays = [];
+      for (let i = 0; i < byteCharacters.length; i++) {
+        byteArrays.push(byteCharacters.charCodeAt(i));
+      }
+      const byteArray = new Uint8Array(byteArrays);
+      const blob = new Blob([byteArray], { type: "image/jpeg" });
 
-      const timeoutPromise = new Promise<never>((_, reject) => {
-        setTimeout(() => {
-          if (worker) {
-            worker.terminate();
-          }
-          reject(new Error("处理超时"));
-        }, 3000);
+      // Create form data
+      const formData = new FormData();
+      formData.append("file", blob, "image.jpg");
+
+      // Send to OCR service
+      const response = await fetch("http://localhost:5001/api/OCR/recognize", {
+        method: "POST",
+        body: formData,
       });
 
-      const result = await Promise.race([
-        worker.recognize(imageData),
-        timeoutPromise,
-      ]);
+      if (!response.ok) {
+        throw new Error("OCR服务请求失败");
+      }
 
-      if (result && typeof result === "object" && "data" in result) {
-        const text = (result as { data: { text: string } }).data.text;
-        if (text.trim()) {
-          onResult(text);
-        } else {
-          onError("未识别到文字");
-        }
+      const result = await response.json();
+      if (result && result.text) {
+        onResult(result.text);
       } else {
-        onError("处理超时");
+        onError("未识别到文字");
       }
     } catch (error) {
       console.error("处理错误:", error);
-      onError(
-        error instanceof Error && error.message === "处理超时"
-          ? "处理超时，请重试"
-          : "处理失败"
-      );
+      onError(error instanceof Error ? error.message : "处理失败");
     } finally {
-      if (worker) {
-        try {
-          await worker.terminate();
-        } catch (e) {
-          console.error("清理 worker 失败:", e);
-        }
-      }
       setIsProcessing(false);
     }
   };
