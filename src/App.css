@@ -464,3 +464,24 @@ p {
     transform: rotate(360deg);
   }
 }
+
+.switch-camera-button {
+  background-color: #4a90e2;
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 14px;
+  margin-left: 10px;
+  transition: background-color 0.3s;
+}
+
+.switch-camera-button:hover {
+  background-color: #357abd;
+}
+
+.switch-camera-button:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+}

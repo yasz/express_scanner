@@ -23,6 +23,9 @@ export const Camera = ({
   const [scanResult, setScanResult] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
+  const [facingMode, setFacingMode] = useState<"user" | "environment">(
+    "environment"
+  );
   const scanInterval = useRef<NodeJS.Timeout | null>(null);
   const codeReader = useRef<BrowserMultiFormatReader | null>(null);
 
@@ -152,6 +155,10 @@ export const Camera = ({
     stopScanning();
   };
 
+  const toggleCamera = () => {
+    setFacingMode(facingMode === "user" ? "environment" : "user");
+  };
+
   useEffect(() => {
     const checkBrowserSupport = () => {
       const isSecureContext = window.isSecureContext;
@@ -203,7 +210,7 @@ export const Camera = ({
           audio={false}
           screenshotFormat="image/jpeg"
           videoConstraints={{
-            facingMode: { exact: "environment" },
+            facingMode: facingMode,
             width: { ideal: 1280 },
             height: { ideal: 720 },
           }}
@@ -222,6 +229,9 @@ export const Camera = ({
           disabled={isProcessing}
         >
           {isProcessing ? "识别中..." : "OCR识别"}
+        </button>
+        <button onClick={toggleCamera} className="switch-camera-button">
+          {facingMode === "user" ? "切换到后置" : "切换到前置"}
         </button>
       </div>
       {scanResult && (
